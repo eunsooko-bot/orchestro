@@ -19,3 +19,12 @@ class Processor:
 
     def allocate_abnormal_data(self, *args, **kwargs):
         return allocate_abnormal_data(*args, **kwargs)
+
+    def list_chain_custom(self, *args, **kwargs):
+        return list_chain_custom(*args, **kwargs)
+
+    def cal_stat_results(self, *args, **kwargs):
+        return cal_stat_results(*args, **kwargs)
+
+    def mse_loss(self, *args, **kwargs):
+        return mse_loss(*args, **kwargs)

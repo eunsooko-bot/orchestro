@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 import random
+from sklearn import metrics
 
 
 def create_df(df):
@@ -83,9 +84,11 @@ def sliding_window(raw_data, para):
     return pd.DataFrame(new_data, columns=raw_data.columns)
 
 
-def split_dataset_for_train_val_test(deeplog_df, label_category=0, split_n=10):
-    deeplog_shuffled = deeplog_df[deeplog_df['Label'] == label_category].sample(frac=1)
-    df_splits = np.array_split(deeplog_shuffled, split_n)
+def split_dataset_for_train_val_test(doc_inferred_vec, label_list, label_category=0, split_n=10):
+
+    doc_inferred_vec_selected = [x for x, y in zip(doc_inferred_vec, label_list) if y == label_category]
+    random.shuffle(doc_inferred_vec_selected)
+    df_splits = np.array_split(doc_inferred_vec_selected, split_n)
 
     return df_splits
 
@@ -136,3 +139,47 @@ def allocate_abnormal_data(data, catergory_n):
 
     return df_selected_list
 
+
+def list_chain_custom(list_in_array):
+
+    list_append = []
+    for array in list_in_array:
+        list_append = list_append + array.tolist()
+
+    return list_append
+
+
+def cal_stat_results(valid_error, test_error, test_label):
+
+    data = valid_error
+    data_standadized_np = (data - np.mean(data, axis=0)) / np.std(data, axis=0)
+
+    mu = np.mean(data_standadized_np, axis=0)
+    sigma = np.std(data_standadized_np, axis=0)
+    sigma_square = np.var(data_standadized_np, axis=0)
+
+    threshold1 = mu + (1.645 * sigma / np.sqrt(len(data)))  # 유의수준 90%
+    threshold2 = mu + (1.96 * sigma / np.sqrt(len(data)))  # 유의수준 95%
+    threshold3 = mu + (2.576 * sigma / np.sqrt(len(data)))  # 유의수준 99%
+
+    pred_test_label = [1 if data > threshold1 else 0 for data in test_error]
+
+    info_dic = {
+        "Significance_level": {"90%":threshold1,
+                               "95%":threshold2,
+                               "99%":threshold3},
+        "by_normal": {"accuracy_score": metrics.accuracy_score(test_label, pred_test_label),
+                      "precision_score": metrics.precision_score(test_label, pred_test_label, pos_label=1),
+                      "recall_score": metrics.recall_score(test_label, pred_test_label, pos_label=1),
+                      "f1_score": metrics.f1_score(test_label, pred_test_label, pos_label=1)},
+
+        "by_abnormal": {"precision_score": metrics.precision_score(test_label, pred_test_label, pos_label=0),
+                        "recall_score": metrics.recall_score(test_label, pred_test_label, pos_label=0),
+                        "f1_score": metrics.f1_score(test_label, pred_test_label, pos_label=0)}
+    }
+
+    return info_dic
+
+
+def mse_loss(real, pred):
+    return np.mean(np.power(real - pred, 2), axis=1)

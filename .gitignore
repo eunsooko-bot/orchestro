@@ -4,6 +4,8 @@ data/
 
 artifact/
 
+output/
+
 _model/__pycache__/
 
 _preprocess/__pycache__/
