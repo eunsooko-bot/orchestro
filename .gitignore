@@ -4,4 +4,12 @@ data/
 
 artifact/
 
+_model/__pycache__/
+
+_preprocess/__pycache__/
+
+_project/__pycache__/
+
+_utils/__pycache__/
+
 
